@@ -2,25 +2,80 @@
 <html>
 <head>
     <title>WhatsApp Automation Dashboard</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #4b0082, #8a2be2);
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 15px;
+            width: 320px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        input {
+            width: 90%;
+            padding: 8px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: none;
+        }
+
+        button {
+            background-color: #d8b4fe;
+            color: #4b0082;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #c084fc;
+        }
+
+        #chatReply {
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>WhatsApp Automation Dashboard</h1>
+<h1>WhatsApp Automation Dashboard</h1>
 
+<div class="card">
     <h2>Add Contact</h2>
     <input type="text" id="name" placeholder="Name">
     <input type="text" id="phone" placeholder="Phone">
     <button onclick="addContact()">Add Contact</button>
+</div>
 
+<div class="card">
     <h2>Send Message</h2>
     <input type="number" id="contactId" placeholder="Contact ID">
     <input type="text" id="messageContent" placeholder="Message">
     <button onclick="sendMessage()">Send</button>
+</div>
 
+<div class="card">
     <h2>Chatbot</h2>
     <input type="text" id="chatInput" placeholder="Type message">
     <button onclick="chatbot()">Send</button>
     <p id="chatReply"></p>
+</div>
 
 <script>
     const baseURL = "https://whatsapp-automation-m83p.onrender.com";
@@ -35,8 +90,7 @@
             })
         })
         .then(res => res.json())
-        .then(data => alert(data.message))
-        .catch(error => alert("Error adding contact"));
+        .then(data => alert(data.message));
     }
 
     function sendMessage() {
@@ -49,8 +103,7 @@
             })
         })
         .then(res => res.json())
-        .then(data => alert(data.message))
-        .catch(error => alert("Error sending message"));
+        .then(data => alert(data.message));
     }
 
     function chatbot() {
@@ -64,9 +117,6 @@
         .then(res => res.json())
         .then(data => {
             document.getElementById("chatReply").textContent = data.reply;
-        })
-        .catch(error => {
-            document.getElementById("chatReply").textContent = "Error occurred";
         });
     }
 </script>
