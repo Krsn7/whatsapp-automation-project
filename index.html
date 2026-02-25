@@ -12,18 +12,10 @@
     <input type="text" id="phone" placeholder="Phone">
     <button onclick="addContact()">Add Contact</button>
 
-    <h2>View Contacts</h2>
-    <button onclick="getContacts()">Show Contacts</button>
-    <pre id="contactsOutput"></pre>
-
     <h2>Send Message</h2>
     <input type="number" id="contactId" placeholder="Contact ID">
     <input type="text" id="messageContent" placeholder="Message">
     <button onclick="sendMessage()">Send</button>
-
-    <h2>View Messages</h2>
-    <button onclick="getMessages()">Show Messages</button>
-    <pre id="messagesOutput"></pre>
 
     <h2>Chatbot</h2>
     <input type="text" id="chatInput" placeholder="Type message">
@@ -43,16 +35,8 @@
             })
         })
         .then(res => res.json())
-        .then(data => alert(data.message));
-    }
-
-    function getContacts() {
-        fetch(baseURL + "/contacts")
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("contactsOutput").textContent =
-                JSON.stringify(data, null, 2);
-        });
+        .then(data => alert(data.message))
+        .catch(error => alert("Error adding contact"));
     }
 
     function sendMessage() {
@@ -65,16 +49,8 @@
             })
         })
         .then(res => res.json())
-        .then(data => alert(data.message));
-    }
-
-    function getMessages() {
-        fetch(baseURL + "/messages")
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("messagesOutput").textContent =
-                JSON.stringify(data, null, 2);
-        });
+        .then(data => alert(data.message))
+        .catch(error => alert("Error sending message"));
     }
 
     function chatbot() {
@@ -88,10 +64,12 @@
         .then(res => res.json())
         .then(data => {
             document.getElementById("chatReply").textContent = data.reply;
+        })
+        .catch(error => {
+            document.getElementById("chatReply").textContent = "Error occurred";
         });
     }
 </script>
 
 </body>
-
 </html>
