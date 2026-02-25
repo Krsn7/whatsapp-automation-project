@@ -72,8 +72,11 @@ app.get("/messages", (req, res) => {
 app.post("/chatbot", (req, res) => {
     const { text } = req.body;
 
-    const message = text.toLowerCase().trim();
+    if (!text) {
+        return res.json({ reply: "Please enter a message." });
+    }
 
+    const message = text.toLowerCase().trim();
     let reply = "";
 
     if (message.includes("hello") || message.includes("hi")) {
@@ -94,6 +97,10 @@ app.post("/chatbot", (req, res) => {
 
     res.json({ reply });
 });
-app.listen(5000, () => {
-    console.log(`Server started on port 5000`);
+
+// ✅ IMPORTANT FOR RENDER
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server started on port ${PORT}`);
 });
