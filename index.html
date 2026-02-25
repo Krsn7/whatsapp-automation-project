@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WhatsApp Automation Dashboard</title>
+</head>
+<body>
+
+    <h1>WhatsApp Automation Dashboard</h1>
+
+    <h2>Add Contact</h2>
+    <input type="text" id="name" placeholder="Name">
+    <input type="text" id="phone" placeholder="Phone">
+    <button onclick="addContact()">Add Contact</button>
+
+    <h2>View Contacts</h2>
+    <button onclick="getContacts()">Show Contacts</button>
+    <pre id="contactsOutput"></pre>
+
+    <h2>Send Message</h2>
+    <input type="number" id="contactId" placeholder="Contact ID">
+    <input type="text" id="messageContent" placeholder="Message">
+    <button onclick="sendMessage()">Send</button>
+
+    <h2>View Messages</h2>
+    <button onclick="getMessages()">Show Messages</button>
+    <pre id="messagesOutput"></pre>
+
+    <h2>Chatbot</h2>
+    <input type="text" id="chatInput" placeholder="Type message">
+    <button onclick="chatbot()">Send</button>
+    <p id="chatReply"></p>
+
+<script>
+    const baseURL = "http://localhost:5000";
+
+    function addContact() {
+        fetch(baseURL + "/add-contact", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: document.getElementById("name").value,
+                phone: document.getElementById("phone").value
+            })
+        })
+        .then(res => res.json())
+        .then(data => alert(data.message));
+    }
+
+    function getContacts() {
+        fetch(baseURL + "/contacts")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("contactsOutput").textContent =
+                JSON.stringify(data, null, 2);
+        });
+    }
+
+    function sendMessage() {
+        fetch(baseURL + "/send-message", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contactId: document.getElementById("contactId").value,
+                content: document.getElementById("messageContent").value
+            })
+        })
+        .then(res => res.json())
+        .then(data => alert(data.message));
+    }
+
+    function getMessages() {
+        fetch(baseURL + "/messages")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("messagesOutput").textContent =
+                JSON.stringify(data, null, 2);
+        });
+    }
+
+    function chatbot() {
+        fetch(baseURL + "/chatbot", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                text: document.getElementById("chatInput").value
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("chatReply").textContent = data.reply;
+        });
+    }
+</script>
+
+</body>
+</html>
