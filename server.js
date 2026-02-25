@@ -9,15 +9,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 4️⃣ Sample in-memory storage
+// 4️⃣ In-memory storage
 let contacts = [];
 let messages = [];
 
+// 🔐 Admin Secret Key (CHANGE this to anything you want)
+const ADMIN_SECRET = "mysecret123";
+
 // 5️⃣ Routes
 
-// Add Contact
+// Add Contact (Public)
 app.post("/add-contact", (req, res) => {
     const { name, phone } = req.body;
+
+    if (!name || !phone) {
+        return res.status(400).json({ message: "Name and phone required" });
+    }
 
     const contact = {
         id: contacts.length + 1,
@@ -33,14 +40,13 @@ app.post("/add-contact", (req, res) => {
     });
 });
 
-// Get Contacts
-app.get("/contacts", (req, res) => {
-    res.json(contacts);
-});
-
-// Send Message
+// Send Message (Public)
 app.post("/send-message", (req, res) => {
     const { contactId, content } = req.body;
+
+    if (!contactId || !content) {
+        return res.status(400).json({ message: "Contact ID and message required" });
+    }
 
     const message = {
         id: messages.length + 1,
@@ -51,7 +57,6 @@ app.post("/send-message", (req, res) => {
 
     messages.push(message);
 
-    // Simulate delivery update
     setTimeout(() => {
         message.status = "Delivered";
         console.log("Message Delivered");
@@ -63,12 +68,7 @@ app.post("/send-message", (req, res) => {
     });
 });
 
-// Get Messages
-app.get("/messages", (req, res) => {
-    res.json(messages);
-});
-
-// Chatbot
+// Chatbot (Public)
 app.post("/chatbot", (req, res) => {
     const { text } = req.body;
 
@@ -98,7 +98,29 @@ app.post("/chatbot", (req, res) => {
     res.json({ reply });
 });
 
-// ✅ IMPORTANT FOR RENDER
+// 🔐 Get Contacts (Admin Only)
+app.get("/contacts", (req, res) => {
+    const secret = req.headers["admin-secret"];
+
+    if (secret !== ADMIN_SECRET) {
+        return res.status(403).json({ message: "Access Denied" });
+    }
+
+    res.json(contacts);
+});
+
+// 🔐 Get Messages (Admin Only)
+app.get("/messages", (req, res) => {
+    const secret = req.headers["admin-secret"];
+
+    if (secret !== ADMIN_SECRET) {
+        return res.status(403).json({ message: "Access Denied" });
+    }
+
+    res.json(messages);
+});
+
+// Render Port Configuration
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
