@@ -4,20 +4,21 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-// Middlewares
+// ===============================
+// 🔹 Middlewares
+// ===============================
 app.use(cors());
 app.use(express.json());
 
-// 🔐 Admin Secret (Change this if you want)
-const ADMIN_SECRET = "mysecret123";
+// ===============================
+// 🔐 Admin Secret
+// ===============================
+const ADMIN_SECRET = "mysecret123"; // change if you want
 
 // ===============================
 // 🟢 MongoDB Connection
 // ===============================
-
-const MONGO_URI = "mongodb+srv://admin:mypass1234@cluster0.qrybwik.mongodb.net/whatsappDB?retryWrites=true&w=majority"; 
-// Example format:
-// mongodb+srv://admin:Password123@cluster0.xxxxx.mongodb.net/whatsappDB?retryWrites=true&w=majority
+const MONGO_URI = "YOUR_MONGODB_CONNECTION_STRING";
 
 mongoose.connect(MONGO_URI)
 .then(() => {
@@ -25,13 +26,14 @@ mongoose.connect(MONGO_URI)
 })
 .catch((err) => {
     console.log("❌ MongoDB Connection Failed");
-    console.log("Error Message:", err.message);
+    console.log("Error:", err.message);
 });
 
 // ===============================
-// 🟢 Contact Schema
+// 🟢 Schemas
 // ===============================
 
+// Contact Schema
 const contactSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -45,11 +47,29 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model("Contact", contactSchema);
 
+// Message Schema
+const messageSchema = new mongoose.Schema({
+    contactId: {
+        type: String,
+        required: true
+    },
+    content: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const Message = mongoose.model("Message", messageSchema);
+
 // ===============================
 // 🟢 Routes
 // ===============================
 
-// Add Contact
+// ➤ Add Contact
 app.post("/add-contact", async (req, res) => {
     try {
         const { name, phone } = req.body;
@@ -60,11 +80,7 @@ app.post("/add-contact", async (req, res) => {
             });
         }
 
-        const newContact = new Contact({
-            name,
-            phone
-        });
-
+        const newContact = new Contact({ name, phone });
         await newContact.save();
 
         res.json({
@@ -80,7 +96,7 @@ app.post("/add-contact", async (req, res) => {
     }
 });
 
-// Get Contacts (Admin Only)
+// ➤ Get Contacts (Admin Only)
 app.get("/contacts", async (req, res) => {
     try {
         const secret = req.headers["admin-secret"];
@@ -91,7 +107,7 @@ app.get("/contacts", async (req, res) => {
             });
         }
 
-        const contacts = await Contact.find();
+        const contacts = await Contact.find().select("-__v");
         res.json(contacts);
 
     } catch (error) {
@@ -102,7 +118,63 @@ app.get("/contacts", async (req, res) => {
     }
 });
 
-// Simple Chatbot
+// ➤ Send Message
+app.post("/send-message", async (req, res) => {
+    try {
+        const { contactId, content } = req.body;
+
+        if (!contactId || !content) {
+            return res.status(400).json({
+                message: "Contact ID and content required"
+            });
+        }
+
+        const newMessage = new Message({
+            contactId,
+            content
+        });
+
+        await newMessage.save();
+
+        res.json({
+            message: "Message Sent Successfully",
+            data: newMessage
+        });
+
+    } catch (error) {
+        console.log("Send Message Error:", error.message);
+        res.status(500).json({
+            message: "Error sending message"
+        });
+    }
+});
+
+// ➤ Get Messages (Admin Only)
+app.get("/messages", async (req, res) => {
+    try {
+        const secret = req.headers["admin-secret"];
+
+        if (secret !== ADMIN_SECRET) {
+            return res.status(403).json({
+                message: "Access Denied"
+            });
+        }
+
+        const messages = await Message.find()
+            .sort({ createdAt: -1 })
+            .select("-__v");
+
+        res.json(messages);
+
+    } catch (error) {
+        console.log("Get Messages Error:", error.message);
+        res.status(500).json({
+            message: "Error fetching messages"
+        });
+    }
+});
+
+// ➤ Simple Chatbot
 app.post("/chatbot", (req, res) => {
     const { text } = req.body;
 
@@ -118,7 +190,6 @@ app.post("/chatbot", (req, res) => {
 // ===============================
 // 🟢 Start Server
 // ===============================
-
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
