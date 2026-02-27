@@ -1,128 +1,72 @@
-// 1️⃣ Import packages
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 
-// 2️⃣ Create app
 const app = express();
-
-// 3️⃣ Middlewares
 app.use(cors());
 app.use(express.json());
 
-// 4️⃣ In-memory storage
-let contacts = [];
-let messages = [];
-
-// 🔐 Admin Secret Key (CHANGE this to anything you want)
+// 🔐 Admin Secret
 const ADMIN_SECRET = "mysecret123";
 
-// 5️⃣ Routes
+// 🟢 Connect to MongoDB
+mongoose.connect("mongodb+srv://admin:<mypass1234@cluster0.qrybwik.mongodb.net/whatsappDB?appName=Cluster0")
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
 
-// Add Contact (Public)
-app.post("/add-contact", (req, res) => {
+// 🟢 Contact Schema
+const contactSchema = new mongoose.Schema({
+    name: String,
+    phone: String
+});
+
+const Contact = mongoose.model("Contact", contactSchema);
+
+// 🟢 Add Contact
+app.post("/add-contact", async (req, res) => {
     const { name, phone } = req.body;
 
-    if (!name || !phone) {
-        return res.status(400).json({ message: "Name and phone required" });
+    try {
+        const newContact = new Contact({ name, phone });
+        await newContact.save();
+
+        res.json({
+            message: "Contact Added Successfully",
+            contact: newContact
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error saving contact" });
     }
-
-    const contact = {
-        id: contacts.length + 1,
-        name,
-        phone
-    };
-
-    contacts.push(contact);
-
-    res.json({
-        message: "Contact Added Successfully",
-        contact
-    });
 });
 
-// Send Message (Public)
-app.post("/send-message", (req, res) => {
-    const { contactId, content } = req.body;
+// 🟢 Get Contacts (Admin Only)
+app.get("/contacts", async (req, res) => {
+    const secret = req.headers["admin-secret"];
 
-    if (!contactId || !content) {
-        return res.status(400).json({ message: "Contact ID and message required" });
+    if (secret !== ADMIN_SECRET) {
+        return res.status(403).json({ message: "Access Denied" });
     }
 
-    const message = {
-        id: messages.length + 1,
-        contactId,
-        content,
-        status: "Sent"
-    };
-
-    messages.push(message);
-
-    setTimeout(() => {
-        message.status = "Delivered";
-        console.log("Message Delivered");
-    }, 3000);
-
-    res.json({
-        message: "Message Sent",
-        data: message
-    });
+    const contacts = await Contact.find();
+    res.json(contacts);
 });
 
-// Chatbot (Public)
+// 🟢 Simple Chatbot
 app.post("/chatbot", (req, res) => {
     const { text } = req.body;
 
-    if (!text) {
-        return res.json({ reply: "Please enter a message." });
-    }
+    let reply = "Sorry, I didn't understand.";
 
-    const message = text.toLowerCase().trim();
-    let reply = "";
-
-    if (message.includes("hello") || message.includes("hi")) {
-        reply = "Hello! How can I help you?";
-    }
-    else if (message.includes("price")) {
-        reply = "Our pricing depends on the service plan. Please contact support.";
-    }
-    else if (message.includes("service")) {
-        reply = "We provide WhatsApp automation and chatbot services.";
-    }
-    else if (message.includes("help")) {
-        reply = "Sure! Please tell me what you need help with.";
-    }
-    else {
-        reply = "Sorry, I didn't understand. Can you rephrase?";
+    if (text.toLowerCase().includes("hello")) {
+        reply = "Hi there!";
     }
 
     res.json({ reply });
 });
 
-// 🔐 Get Contacts (Admin Only)
-app.get("/contacts", (req, res) => {
-    const secret = req.headers["admin-secret"];
-
-    if (secret !== ADMIN_SECRET) {
-        return res.status(403).json({ message: "Access Denied" });
-    }
-
-    res.json(contacts);
-});
-
-// 🔐 Get Messages (Admin Only)
-app.get("/messages", (req, res) => {
-    const secret = req.headers["admin-secret"];
-
-    if (secret !== ADMIN_SECRET) {
-        return res.status(403).json({ message: "Access Denied" });
-    }
-
-    res.json(messages);
-});
-
-// Render Port Configuration
-const PORT = process.env.PORT || 5000;
+// 🟢 Start Server
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
