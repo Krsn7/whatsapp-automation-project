@@ -18,7 +18,7 @@ const ADMIN_SECRET = "mysecret123"; // change if you want
 // ===============================
 // 🟢 MongoDB Connection
 // ===============================
-const MONGO_URI = "YOUR_MONGODB_CONNECTION_STRING";
+const MONGO_URI = "mongodb+srv://admin:mypass1234@cluster0.qrybwik.mongodb.net/whatsappDB?retryWrites=true&w=majority";
 
 mongoose.connect(MONGO_URI)
 .then(() => {
@@ -195,3 +195,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
+
